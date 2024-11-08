@@ -15,40 +15,65 @@ class ProductosModel
         $this->productosDAO = $productoDao;
     }
 
-    public function obtenerCategorias(){
+    public function obtenerCategorias()
+    {
         return $this->productosDAO->obtenerCategorias();
     }
-    public function obtenerProductos(){
+    public function obtenerProductos()
+    {
         return $this->productosDAO->obtenerProductos();
     }
 
-    public function obtenerFabricante(){
+    public function obtenerFabricante()
+    {
         return $this->productosDAO->obtenerFabricante();
     }
-    
-    public function obtenerEstados(){
+
+    public function obtenerEstados()
+    {
         return $this->productosDAO->obtenerEstados();
     }
 
-    public function agregarCategorias($productos){
+    public function agregarCategorias($productos)
+    {
         return $this->productosDAO->agregarCategorias($productos);
     }
-    public function agregarProductos($productos){
+    public function agregarProductos($productos)
+    {
         return $this->productosDAO->agregarProductos($productos);
     }
-    public function modificarCategoria($productos){
+    public function modificarCategoria($productos)
+    {
         return $this->productosDAO->modificarCategoria($productos);
     }
-    public function modificarProductos($productos){
+    public function modificarProductos($productos)
+    {
         return $this->productosDAO->modificarProductos($productos);
     }
-    public function eliminarCategoria($productos){
+    public function eliminarCategoria($productos)
+    {
         return $this->productosDAO->eliminarCategoria($productos);
     }
-    public function eliminarProductos($productos){
+    public function eliminarProductos($productos)
+    {
         return $this->productosDAO->eliminarProductos($productos);
     }
-    public function agregarCaracteristicas($productos){
+    public function agregarCaracteristicas($productos)
+    {
         return $this->productosDAO->agregarCaracteristicas($productos);
+    }
+    // ProductoModel.php
+    public function obtenerCaracteristicasPorProducto($idProducto)
+    {
+        return $this->productosDAO->obtenerCaracteristicasPorProducto($idProducto);
+    }
+
+    public function eliminarCaracteristica($idCaracteristica)
+    {
+        return $this->productosDAO->eliminarCaracteristica($idCaracteristica);
+    }
+    public function eliminarCaracteristicaSecundaria($idCaracteristica)
+    {
+        return $this->productosDAO->eliminarCaracteristicaSecundaria($idCaracteristica);
     }
 }

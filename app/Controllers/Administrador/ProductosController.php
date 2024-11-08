@@ -49,7 +49,8 @@ class ProductoController
         include __DIR__ . '/../../Views/Layaout/VistaAdmin.php';
     }
 
-    public function agregar(){
+    public function agregar()
+    {
         // Iniciar buffering para evitar salidas no deseadas
         ob_start();
 
@@ -226,13 +227,14 @@ class ProductoController
         include __DIR__ . '/../../Views/Layaout/VistaAdmin.php';
     }
 
-    public function agregarCategoria(){
+    public function agregarCategoria()
+    {
         ob_start();
 
         $fecha = $this->limpiarDatos($_POST['fecha'] ?? '');
         $nombreCate = $this->limpiarDatos($_POST['nombreUsuario1'] ?? '');
         $descripcion = $this->limpiarDatos($_POST['descripcion'] ?? '');
-        
+
 
         $agregarCategorias = [
             'fechaIngreso' => $fecha,
@@ -250,14 +252,15 @@ class ProductoController
         }
     }
 
-    public function modificarCategoria(){
+    public function modificarCategoria()
+    {
         ob_start();
 
         $idCat = $this->limpiarDatos($_POST['idCategoria'] ?? '');
         $fecha = $this->limpiarDatos($_POST['fecha'] ?? '');
         $nombreCate = $this->limpiarDatos($_POST['nombreUsuario1'] ?? '');
         $descripcion = $this->limpiarDatos($_POST['descripcion'] ?? '');
-        
+
 
         $modificarCategorias = [
             'fechaIngreso' => $fecha,
@@ -276,7 +279,8 @@ class ProductoController
         }
     }
 
-    public function eliminarCategoria(){
+    public function eliminarCategoria()
+    {
         ob_start();
 
         // Recoger los datos del formulario
@@ -297,7 +301,8 @@ class ProductoController
         }
     }
 
-    public function pedidoshome(){
+    public function pedidoshome()
+    {
         $this->loginController->verificarAcceso(1);
 
 
@@ -308,14 +313,15 @@ class ProductoController
         include __DIR__ . '/../../Views/Layaout/VistaAdmin.php';
     }
 
-    public function caracteristicahome(){
+    public function caracteristicahome()
+    {
         $this->loginController->verificarAcceso(1);
 
         $caracteristicas = $this->cargarUsuario->obtenerProductos();
-        
+
         // Pasar los datos a la vista
         $data = [
-            
+
             'caracteristicas' => $caracteristicas
         ];
         //contenido a mostrar
@@ -325,13 +331,14 @@ class ProductoController
         include __DIR__ . '/../../Views/Layaout/VistaAdmin.php';
     }
 
-    public function agregarCaracteristicas() {
+    public function agregarCaracteristicas()
+    {
         ob_start();
         $usuarioModel = $this->cargarUsuario;
         $maxCaracteristicas = 15; // Número máximo de características permitidas
         $caracteristicas = [];
         $success = true; // Variable para controlar el estado de éxito
-    
+
         for ($i = 0; $i < $maxCaracteristicas; $i++) {
             // Obtener los datos del formulario
             if (isset($_POST['idProducto'][$i]) && isset($_POST['nombreCaracteristica'][$i]) && isset($_POST['valor'][$i])) {
@@ -341,13 +348,13 @@ class ProductoController
                     'valor' => $this->limpiarDatos($_POST['valor'][$i]),
                     'descripcion' => $this->limpiarDatos($_POST['descripcion'][$i]), // El campo descripción es opcional
                 ];
-    
+
                 if (!$usuarioModel->agregarCaracteristicas($usuarioData)) {
                     $success = false; // Si ocurre un error, cambiar el estado
                 }
             }
         }
-    
+
         // Verificar si la inserción fue exitosa
         if ($success) {
             echo json_encode(['success' => true, 'message' => 'Se agregaron las características correctamente.']);
@@ -355,8 +362,52 @@ class ProductoController
             echo json_encode(['success' => false, 'message' => 'No se pudieron agregar algunas características.']);
         }
     }
-    
-    
+
+    // ProductoController.php
+    public function mostrarCaracteristicas()
+    {
+        $usuarioModel = $this->cargarUsuario;
+        $idProducto = $_POST['idProducto'] ?? null;
+
+        if ($idProducto) {
+            $caracteristicas = $usuarioModel->obtenerCaracteristicasPorProducto($idProducto);
+            echo json_encode(['success' => true, 'data' => $caracteristicas]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID de producto no proporcionado']);
+        }
+    }
+
+    public function eliminarCaracteristica()
+    {
+        $usuarioModel = $this->cargarUsuario;
+        $idCaracteristica = $_POST['idCaracteristica'] ?? null;
+
+        if ($idCaracteristica) {
+            if ($usuarioModel->eliminarCaracteristica($idCaracteristica)) {
+                echo json_encode(['success' => true, 'message' => 'Característica eliminada correctamente']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al eliminar la característica']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID de característica no proporcionado']);
+        }
+    }
+
+    public function eliminarCaracteristicaSecundaria()
+    {
+        $usuarioModel = $this->cargarUsuario;
+        $idCaracteristica = $_POST['idCaracteristica'] ?? null;
+
+        if ($idCaracteristica) {
+            if ($usuarioModel->eliminarCaracteristicaSecundaria($idCaracteristica)) {
+                echo json_encode(['success' => true, 'message' => 'Característica secundaria eliminada correctamente']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al eliminar la característica secundaria']);
+            }
+        } else {
+            echo json_encode(['success' => false, 'message' => 'ID de característica secundaria no proporcionado']);
+        }
+    }
 
     // Función para limpiar los datos de entrada
     private function limpiarDatos($data)

@@ -8,6 +8,8 @@ use App\Controllers\LoginController;
 use App\Controllers\Principaln3Controller;
 use App\Controllers\AdministradorController;
 use App\Controllers\ProductoController;
+use App\Controllers\PedidosController;
+
 
 
 require_once __DIR__ . '/../config/config.php';
@@ -17,6 +19,7 @@ require_once __DIR__ . '/../app/Controllers/Contador/Homen3Controller.php';
 //Carpeta Administrador
 require_once __DIR__ . '/../app/Controllers/Administrador/AdministradorController.php';
 require_once __DIR__ . '/../app/Controllers/Administrador/ProductosController.php';
+require_once __DIR__ . '/../app/Controllers/Administrador/PedidosController.php';
 
 require_once __DIR__ . '/../app/controllers/Login/LoginControlller.php';
 
@@ -50,6 +53,7 @@ $homePController = new Principaln3Controller($conexion);
 //Administrador
 $administradorControllers = new AdministradorController($conexion);
 $productosControllers = new ProductoController($conexion);
+$pedidosControllers = new PedidosController($conexion);
 
 // Manejar la solicitud según la ruta
 switch ($route) {
@@ -137,6 +141,51 @@ switch ($route) {
     case 'agregarCaracteristca':
         verificarAutenticacion();
         $productosControllers->agregarCaracteristicas();
+        break;
+
+    case 'mostrarCaracteristicas':
+        verificarAutenticacion();
+        $productosControllers->mostrarCaracteristicas();
+        break;
+
+    case 'eliminarCaracteristica':
+        verificarAutenticacion();
+        $productosControllers->eliminarCaracteristica();
+        break;
+
+    case 'eliminarCaracteristicaSecundaria':
+        verificarAutenticacion();
+        $productosControllers->eliminarCaracteristicaSecundaria();
+        break;
+
+    case 'pedidos':
+        verificarAutenticacion();
+        $pedidosController->index();
+        break;
+
+    case 'agregarPedido':
+        verificarAutenticacion();
+        $pedidosController->agregarPedido();
+        break;
+
+    case 'modificarPedido':
+        verificarAutenticacion();
+        $pedidosController->modificarPedido();
+        break;
+
+    case 'eliminarPedido':
+        verificarAutenticacion();
+        $pedidosController->eliminarPedido();
+        break;
+
+    case 'obtenerPedido':
+        verificarAutenticacion();
+        $pedidosController->obtenerPedido();
+        break;
+
+    case 'obtenerDetallesPedido':
+        verificarAutenticacion();
+        $pedidosController->obtenerDetallesPedido();
         break;
 
 

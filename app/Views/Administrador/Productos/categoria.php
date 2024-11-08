@@ -4,6 +4,14 @@
     </div>
     <br>
 
+    <div class="card-title mb-0">
+        <h5 class="m-0 me-2" style="font-weight: bold;">
+            <i class="bi bi-card-checklist" style="font-size: 1.7rem; color: green; margin-right: 5px;"></i>
+            Gestion de categorias
+        </h5>
+    </div>
+    <br>
+
     <div class="row mb-4">
         <!--Fecha-->
         <div class="col">
@@ -33,7 +41,7 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <button type="button" class="btn btn-secondary" id="btnGuardar">Guardar Cambios</button>
+            <button type="button" class="btn btn-secondary" id="btnGuardar"><i class="bi bi-check-circle" style="margin-right: 5px;"></i>Guardar Cambios</button>
             <button type="button" class="btn btn-primary d-none" id="btnModificar">Modificar</button>
             <button type="button" class="btn btn-primary d-none" id="btnEliminar">Eliminar</button>
             <button type="button" class="btn btn-danger d-none" id="btnCancelar">Cancelar</button>
@@ -264,7 +272,7 @@
             $("#nombreUsuario1").val(nombre);
             $("#descripcion").val(descripcion);
 
-            configurarBotones(false, true,false); // Mostrar "Modificar" y "Cancelar", ocultar "Guardar"
+            configurarBotones(false, true, false); // Mostrar "Modificar" y "Cancelar", ocultar "Guardar"
         };
 
         // Cargar datos para modificar un registro
@@ -274,19 +282,19 @@
             $("#nombreUsuario1").val(nombre);
             $("#descripcion").val(descripcion);
 
-            configurarBotones(false, false,true); // Mostrar "Modificar" y "Cancelar", ocultar "Guardar"
+            configurarBotones(false, false, true); // Mostrar "Modificar" y "Cancelar", ocultar "Guardar"
         };
 
         // Acción al cancelar
         $("#btnCancelar").on("click", function() {
             limpiarFormulario(); // Limpiar formulario
-            configurarBotones(true, false,false); // Mostrar "Guardar"
+            configurarBotones(true, false, false); // Mostrar "Guardar"
         });
 
         // Asegurarse de limpiar formulario y cargar fecha actual al cerrar el modal
         $('#opciones').on('hidden.bs.modal', function() {
             limpiarFormulario(); // Limpiar formulario al cerrar el modal
-            configurarBotones(true, false,false); // Mostrar "Guardar"
+            configurarBotones(true, false, false); // Mostrar "Guardar"
         });
 
         // Establecer la fecha actual al cargar la página

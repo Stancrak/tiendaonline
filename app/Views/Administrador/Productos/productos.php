@@ -1,5 +1,8 @@
 <fieldset>
-    <input type="button" name="btnNuevo" id="btnNuevo" class="btn btn-secondary" value="Agregar Integrantes" data-toggle="modal" data-target="#opciones" />
+    <button type="button" name="btnNuevo" id="btnNuevo" class="btn btn-primary" data-toggle="modal" data-target="#opciones">
+        <i class="bi bi-check-circle" style="margin-right: 5px;"></i> Agregar Producto
+    </button>
+
 </fieldset>
 <br>
 
@@ -7,7 +10,7 @@
     <h6>Gestion de productos</h6>
 </div>
 
-<div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+<div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
     <table class="table table-bordered">
         <thead class="alert-info" style="position: sticky; top: 0; background-color: #f8f9fa;">
             <tr style='background-color: blue; color: white;'>

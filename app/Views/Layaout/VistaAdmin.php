@@ -44,6 +44,8 @@ $rolUsuario = $_SESSION['rol'];
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.8.1/font/bootstrap-icons.min.css">
+
     <script>
         function actualizarHora() {
             // Obtener la fecha y hora actual
@@ -143,8 +145,8 @@ $rolUsuario = $_SESSION['rol'];
                         <a class="collapse-item" href="?route=categoriahome">Gestion de Categoria</a>
                         <a class="collapse-item" href="?route=caracteristcaHome">Caracteristicas Productos</a>
                         <a class="collapse-item" href="?route=pedidosHome">Pedidos</a>
-                        
-                        
+
+
                     </div>
                 </div>
             </li>

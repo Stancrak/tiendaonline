@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Dao;
 
 interface ProductosDAOInterface
@@ -16,6 +17,7 @@ interface ProductosDAOInterface
     public function eliminarProductos($productos);
 
     public function agregarCaracteristicas($productos);
-
-
+    public function obtenerCaracteristicasPorProducto($idProducto);
+    public function eliminarCaracteristica($idCaracteristica);
+    public function eliminarCaracteristicaSecundaria($idCaracteristica);
 }

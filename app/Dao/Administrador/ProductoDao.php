@@ -15,14 +15,16 @@ class ProductosDao implements ProductosDAOInterface
     {
         $this->db = $conexion;
     }
-    public function obtenerCategorias(){
+    public function obtenerCategorias()
+    {
         $query = "SELECT idCat, fechaIngreso,nombre,descripcion,estado FROM categoria;";
         $stmt = $this->db->prepare($query);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
-    public function obtenerProductos(){
+
+    public function obtenerProductos()
+    {
         $query = "SELECT pro.idProducto, 
                 pro.nombre AS nombre, 
                 pro.proveedor AS idProveedor,
@@ -47,7 +49,8 @@ class ProductosDao implements ProductosDAOInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function obtenerFabricante(){
+    public function obtenerFabricante()
+    {
         $query = "SELECT idProveedor, nombre FROM proveedor;";
         $stmt = $this->db->prepare($query);
         $stmt->execute();
@@ -62,7 +65,8 @@ class ProductosDao implements ProductosDAOInterface
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function agregarCategorias($productos){
+    public function agregarCategorias($productos)
+    {
         $query = "INSERT INTO categoria (fechaIngreso,nombre, descripcion) 
         VALUES (:fechaIngreso,:nombre, :descripcion)";
         $stmt = $this->db->prepare($query);
@@ -74,7 +78,8 @@ class ProductosDao implements ProductosDAOInterface
         return $stmt->execute();
     }
 
-    public function agregarProductos($productos){
+    public function agregarProductos($productos)
+    {
         $query = "INSERT INTO producto (idProducto, fechaIngreso, nombre, modeloSerial, anio, cantidad, precio, estado, proveedor, categoria, imagen) 
         VALUES (:idProducto, :fechaIngreso, :nombre, :modeloSerial, :anio, :cantidad, :precio, :estado, :proveedor,:categoria, :imagen)";
         $stmt = $this->db->prepare($query);
@@ -94,7 +99,8 @@ class ProductosDao implements ProductosDAOInterface
         return $stmt->execute();
     }
 
-    public function modificarCategoria($productos){
+    public function modificarCategoria($productos)
+    {
         try {
             $query = "UPDATE categoria SET 
                         fechaIngreso = :fechaIngreso, 
@@ -118,7 +124,8 @@ class ProductosDao implements ProductosDAOInterface
         }
     }
 
-    public function modificarProductos($productos){
+    public function modificarProductos($productos)
+    {
         try {
             // Verificar si hay imagen nueva para actualizar o no
             $query = "UPDATE producto SET 
@@ -171,7 +178,8 @@ class ProductosDao implements ProductosDAOInterface
         }
     }
 
-    public function eliminarCategoria($productos) {
+    public function eliminarCategoria($productos)
+    {
         try {
             // Preparar la consulta SQL para actualizar el usuario
             $query = "DELETE FROM categoria WHERE idCat = :idCat;";
@@ -189,7 +197,8 @@ class ProductosDao implements ProductosDAOInterface
         }
     }
 
-    public function eliminarProductos($productos){
+    public function eliminarProductos($productos)
+    {
         try {
             // Preparar la consulta SQL para actualizar el usuario
             $query = "DELETE FROM producto WHERE idProducto = :idProducto;";
@@ -207,18 +216,44 @@ class ProductosDao implements ProductosDAOInterface
         }
     }
 
-    public function agregarCaracteristicas($productos) {
+    public function agregarCaracteristicas($productos)
+    {
         $query = "INSERT INTO caracteristicaProducto (idProducto, nombreCaracteristica, valor, descripcion) 
         VALUES (:idProducto, :nombreCaracteristica, :valor, :descripcion)";
-        
+
         $stmt = $this->db->prepare($query);
-    
+
         $stmt->bindParam(':idProducto', $productos['idProducto']);
         $stmt->bindParam(':nombreCaracteristica', $productos['nombreCaracteristica']);
         $stmt->bindParam(':valor', $productos['valor']);
         $stmt->bindParam(':descripcion', $productos['descripcion']);
-    
+
         return $stmt->execute();
     }
-    
+
+    // ProductoDao.php
+    public function obtenerCaracteristicasPorProducto($idProducto)
+    {
+        $query = "SELECT * FROM caracteristicaProducto WHERE idProducto = :idProducto";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':idProducto', $idProducto);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function eliminarCaracteristica($idCaracteristica)
+    {
+        $query = "DELETE FROM caracteristicaProducto WHERE idCaracteristica = :idCaracteristica";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':idCaracteristica', $idCaracteristica);
+        return $stmt->execute();
+    }
+
+    public function eliminarCaracteristicaSecundaria($idCaracteristica)
+    {
+        $query = "DELETE FROM caracteristicas_secundarias WHERE idCaracteristica = :idCaracteristica";
+        $stmt = $this->db->prepare($query);
+        $stmt->bindParam(':idCaracteristica', $idCaracteristica);
+        return $stmt->execute();
+    }
 }

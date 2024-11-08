@@ -1,9 +1,12 @@
 <form id="usuarioForm" class="needs-validation" novalidate>
+
     <div class="card-title mb-0">
-        <h6 class="m-0 me-2">Detalles de productos</h6>
+        <h5 class="m-0 me-2" style="font-weight: bold;">
+            <i class="bi bi-journals" style="font-size: 1.7rem; color: green; margin-right: 5px;"></i>
+            Detalles de productos
+        </h5>
     </div>
     <br>
-
     <div class="row mb-4">
         <div class="col">
             <div class="form-outline">
@@ -49,8 +52,8 @@
 
     <div class="row mb-4">
         <div class="col-12">
-            <button type="button" class="btn btn-primary" id="agregarCaracteristica">Agregar Característica</button>
-            <button type="button" class="btn btn-warning" id="cancelarSeleccion" style="display: none;">Cancelar Selección</button>
+            <button type="button" class="btn btn-primary" id="agregarCaracteristica"><i class="bi bi-plus-circle" style="margin-right: 5px;"></i>Agregar Característica</button>
+            <button type="button" class="btn btn-warning" id="cancelarSeleccion" style="display: none;"><i class="bi bi-x-circle" style="margin-right: 5px;"></i>Cancelar Selección</button>
         </div>
     </div>
 
@@ -77,9 +80,55 @@
     <!-- Procesar Usuario -->
     <div class="row mb-4">
         <div class="col-12">
-            <button type="button" class="btn btn-secondary" id="guardarCambios">Guardar Cambios y Enviar</button>
+            <button type="button" class="btn btn-secondary" id="guardarCambios"><i class="bi bi-check-circle" style="margin-right: 5px;"></i>Guardar Cambios y Enviar</button>
         </div>
     </div>
+
+    <!-- Nuevo código -->
+    <div class="col">
+        <div class="card-title mb-2 mt-5">
+            <h5 class="m-0 me-2" style="font-weight: bold;">
+                <i class="bi bi-card-list" style="font-size: 1.7rem; color: green; margin-right: 5px;"></i>
+                Listar características de productos
+            </h5>
+        </div>
+
+        <div class="form-outline">
+            <label class="form-label" style="font-size: 14px;" for="idProductoSecundario">Producto Seleccionado</label>
+            <select id="idProductoSecundario" name="idProductoSecundario" class="form-control mb-3" required>
+                <option value="" disabled selected>Seleccionar</option>
+                <?php foreach ($data['caracteristicas'] as $prod): ?>
+                    <option value="<?php echo htmlspecialchars($prod['idProducto']); ?>">
+                        <?php echo htmlspecialchars($prod['nombre']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            <div class="invalid-feedback">Por favor seleccione un producto secundario.</div>
+        </div>
+    </div>
+    <!-- Fin del nuevo código -->
+    <!-- Nuevo código -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="tablaCaracteristicasSecundarias">
+                    <thead class="alert-info">
+                        <tr style="background-color: green; color: white;">
+                            <th>Producto Secundario</th>
+                            <th>Característica</th>
+                            <th>Valor</th>
+                            <th>Descripción</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Fin del nuevo código -->
+
 </form>
 
 <script>
@@ -88,11 +137,7 @@
     // Función para manejar la selección del producto
     document.getElementById('idProducto').addEventListener('change', function() {
         const selectedValue = this.value;
-
-        // Bloquear el combo box
         this.disabled = true;
-
-        // Mostrar el botón "Cancelar Selección"
         document.getElementById('cancelarSeleccion').style.display = 'inline-block';
     });
 
@@ -103,32 +148,20 @@
         const valor = document.getElementById('valor').value;
         const descripcion = document.getElementById('descripcion').value;
 
-        // Verificar si todos los campos necesarios están completos
         if (idProducto && nombreCaracteristica && valor && descripcion) {
             if (caracteristicas.length < 15) {
+                const idCaracteristica = Date.now(); // Generar un ID único
                 caracteristicas.push({
                     idProducto,
+                    idCaracteristica,
                     nombreCaracteristica,
                     valor,
                     descripcion
                 });
 
-                // Limpiar la tabla antes de agregar las filas
-                document.querySelector("#tablaCaracteristicas tbody").innerHTML = '';
+                actualizarTablaCaracteristicas(); // Actualiza la tabla después de agregar
 
-                // Actualizar la tabla con las características agregadas
-                caracteristicas.forEach((c, index) => {
-                    const fila = `<tr>
-                        <td>${c.idProducto}</td>
-                        <td>${c.nombreCaracteristica}</td>
-                        <td>${c.valor}</td>
-                        <td>${c.descripcion}</td>
-                        <td><button type="button" class="btn btn-danger" onclick="eliminarCaracteristica(${index})">Eliminar</button></td>
-                    </tr>`;
-                    document.querySelector("#tablaCaracteristicas tbody").insertAdjacentHTML('beforeend', fila);
-                });
-
-                // Limpiar los campos del formulario excepto el producto
+                // Limpiar los campos del formulario
                 document.getElementById('nombreCaracteristica').value = '';
                 document.getElementById('valor').value = '';
                 document.getElementById('descripcion').value = '';
@@ -152,17 +185,10 @@
 
     // Función para cancelar la selección de producto
     document.getElementById('cancelarSeleccion').addEventListener('click', function() {
-        // Habilitar nuevamente el combo box
         document.getElementById('idProducto').disabled = false;
-
-        // Limpiar la selección del producto
         document.getElementById('idProducto').selectedIndex = 0;
-
-        // Limpiar las características y la tabla
-        caracteristicas = []; // Vaciar el array de características
-        document.querySelector("#tablaCaracteristicas tbody").innerHTML = ''; // Limpiar la tabla
-
-        // Ocultar el botón "Cancelar Selección"
+        caracteristicas = [];
+        document.querySelector("#tablaCaracteristicas tbody").innerHTML = '';
         this.style.display = 'none';
     });
 
@@ -188,53 +214,246 @@
 
             // Enviar los datos al servidor
             fetch('/tiendaonline/?route=agregarCaracteristca', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Guardado',
+                            text: data.message,
+                            confirmButtonText: 'Aceptar'
+                        }).then(() => {
+                            window.location.href = '/tiendaonline/?route=caracteristcaHome';
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: data.message,
+                            confirmButtonText: 'Aceptar'
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ocurrió un error al enviar los datos.',
+                        confirmButtonText: 'Aceptar'
+                    });
+                });
+        }
+    });
+
+
+    // Función para eliminar característica
+    function eliminarCaracteristica(idCaracteristica) {
+        if (!idCaracteristica) {
+            console.error('ID de característica no válido');
+            return;
+        }
+
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                let index = caracteristicas.findIndex(c => c.idCaracteristica === idCaracteristica);
+                if (index !== -1) {
+                    caracteristicas.splice(index, 1);
+                    actualizarTablaCaracteristicas(); // Actualiza la tabla de características
+                } else {
+                    console.error('Característica no encontrada en el array');
+                }
+
+                // Enviar la solicitud de eliminación al servidor
+                const formData = new FormData();
+                formData.append('idCaracteristica', idCaracteristica);
+
+                fetch('/tiendaonline/?route=eliminarCaracteristica', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire(
+                                'Eliminado',
+                                'La característica ha sido eliminada',
+                                'success'
+                            );
+                        } else {
+                            throw new Error(data.message || 'Error al eliminar la característica');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo eliminar la característica',
+                            confirmButtonText: 'Aceptar'
+                        });
+                    });
+            }
+        });
+    }
+
+    // Función para actualizar la tabla de características
+    function actualizarTablaCaracteristicas() {
+        const tbody = document.querySelector("#tablaCaracteristicas tbody");
+        tbody.innerHTML = '';
+
+        caracteristicas.forEach((c) => {
+            const fila = `<tr>
+            <td>${c.idProducto}</td>
+            <td>${c.nombreCaracteristica}</td>
+            <td>${c.valor}</td>
+            <td>${c.descripcion}</td>
+            <td>
+                <button type="button" class="btn btn-danger" onclick="eliminarCaracteristica(${c.idCaracteristica})"><i class="bi bi-trash" style="margin-right: 5px;"></i>Eliminar</button>
+            </td>
+        </tr>`;
+            tbody.insertAdjacentHTML('beforeend', fila);
+        });
+    }
+
+    // Función para manejar la selección de productos secundarios
+    let caracteristicasSecundarias = []; // Almacena las características secundarias agregadas
+    document.getElementById('idProductoSecundario').addEventListener('change', function() {
+        const selectedValue = this.value;
+        if (selectedValue) {
+            cargarCaracteristicasSecundarias(selectedValue);
+        }
+    });
+
+    // Función para cargar características secundarias desde el servidor
+    function cargarCaracteristicasSecundarias(idProducto) {
+        const formData = new FormData();
+        formData.append('idProducto', idProducto);
+
+        return fetch('/tiendaonline/?route=mostrarCaracteristicas', {
                 method: 'POST',
                 body: formData
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Guardado',
-                        text: data.message,
-                        confirmButtonText: 'Aceptar'
-                    }).then(() => {
-                        window.location.href = '/tiendaonline/?route=caracteristcaHome';
-                    });
+                    caracteristicasSecundarias = data.data;
+                    actualizarTablaCaracteristicasSecundarias();
                 } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message,
-                        confirmButtonText: 'Aceptar'
-                    });
+                    throw new Error(data.message || 'Error al cargar las características secundarias');
                 }
             })
             .catch(error => {
+                console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Ocurrió un error al enviar los datos.',
+                    text: 'No se pudieron cargar las características del producto secundario',
                     confirmButtonText: 'Aceptar'
                 });
             });
-        }
-    });
+    }
 
-    function eliminarCaracteristica(index) {
-        caracteristicas.splice(index, 1); // Eliminar característica
-        // Actualizar la tabla
-        document.querySelector("#tablaCaracteristicas tbody").innerHTML = '';
-        caracteristicas.forEach((c, index) => {
+    // Función para actualizar la tabla de características secundarias
+    function actualizarTablaCaracteristicasSecundarias() {
+        const tbody = document.querySelector("#tablaCaracteristicasSecundarias tbody");
+        tbody.innerHTML = '';
+
+        if (!caracteristicasSecundarias || caracteristicasSecundarias.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay características para este producto seleccionado</td></tr>';
+            return;
+        }
+
+        caracteristicasSecundarias.forEach(c => {
             const fila = `<tr>
-                <td>${c.idProducto}</td>
-                <td>${c.nombreCaracteristica}</td>
-                <td>${c.valor}</td>
-                <td>${c.descripcion}</td>
-                <td><button type="button" class="btn btn-danger" onclick="eliminarCaracteristica(${index})">Eliminar</button></td>
-            </tr>`;
-            document.querySelector("#tablaCaracteristicas tbody").insertAdjacentHTML('beforeend', fila);
+            <td>${c.idProducto}</td>
+            <td>${c.nombreCaracteristica}</td>
+            <td>${c.valor}</td>
+            <td>${c.descripcion || ''}</td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarCaracteristicaSecundaria(${c.idCaracteristica})">
+                    <i class="bi bi-trash" style="margin-right: 5px;"></i>Eliminar
+                </button>
+            </td>
+        </tr>`;
+            tbody.insertAdjacentHTML('beforeend', fila);
         });
     }
+
+    function eliminarCaracteristicaSecundaria(idCaracteristica) {
+        if (!idCaracteristica) {
+            console.error('ID de característica no válido');
+            return;
+        }
+
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Enviar la solicitud de eliminación al servidor primero
+                const formData = new FormData();
+                formData.append('idCaracteristica', idCaracteristica);
+
+                fetch('/tiendaonline/?route=eliminarCaracteristica', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Confirmación de eliminación exitosa en el servidor
+                            let index = caracteristicasSecundarias.findIndex(c => c.idCaracteristica === idCaracteristica);
+                            if (index !== -1) {
+                                caracteristicasSecundarias.splice(index, 1);
+                                actualizarTablaCaracteristicasSecundarias(); // Ahora actualizamos la tabla
+                            } else {
+                                console.error('Característica no encontrada en el array');
+                            }
+
+                            Swal.fire(
+                                'Eliminado',
+                                'La característica ha sido eliminada',
+                                'success'
+                            );
+                        } else {
+                            throw new Error(data.message || 'Error al eliminar la característica');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo eliminar la característica',
+                            confirmButtonText: 'Aceptar'
+                        });
+                    });
+            }
+        });
+    }
+
+
+    // Inicialización de eventos y carga inicial
+    document.addEventListener('DOMContentLoaded', function() {
+        // Aquí puedes agregar cualquier inicialización que necesites
+        // Por ejemplo, cargar productos o características iniciales si es necesario
+    });
 </script>
