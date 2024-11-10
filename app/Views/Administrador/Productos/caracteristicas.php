@@ -103,7 +103,7 @@
                     </option>
                 <?php endforeach; ?>
             </select>
-            <div class="invalid-feedback">Por favor seleccione un producto secundario.</div>
+            <div class="invalid-feedback">Por favor seleccione un producto.</div>
         </div>
     </div>
     <!-- Fin del nuevo código -->
@@ -114,7 +114,7 @@
                 <table class="table table-bordered" id="tablaCaracteristicasSecundarias">
                     <thead class="alert-info">
                         <tr style="background-color: green; color: white;">
-                            <th>Producto Secundario</th>
+                            <th>Producto Seleccionado</th>
                             <th>Característica</th>
                             <th>Valor</th>
                             <th>Descripción</th>

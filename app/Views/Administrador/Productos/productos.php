@@ -85,7 +85,7 @@
                 <h5 class="modal-title" id="exampleModalLabel">
                     <i class="fas fa-box-open me-2"></i> Registro de Productos
                 </h5>
-                <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button id="btnClose" type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body">
@@ -431,6 +431,11 @@
 
             configurarBotones(false, true); // Muestra "Modificar", oculta "Guardar"
         };
+
+        // Cerrar modal al cancelar
+        $("#btnClose").on("click", function() {
+            $('#opciones').modal('hide');
+        });
 
         // Cerrar modal al cancelar
         $("#btnCancelar").on("click", function() {

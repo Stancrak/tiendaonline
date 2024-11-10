@@ -21,6 +21,7 @@ require_once __DIR__ . '/../app/Controllers/Administrador/AdministradorControlle
 require_once __DIR__ . '/../app/Controllers/Administrador/ProductosController.php';
 require_once __DIR__ . '/../app/Controllers/Administrador/PedidosController.php';
 
+
 require_once __DIR__ . '/../app/controllers/Login/LoginControlller.php';
 
 // Verificación de si el usuario está autenticado y tiene el nivel adecuado
@@ -54,6 +55,7 @@ $homePController = new Principaln3Controller($conexion);
 $administradorControllers = new AdministradorController($conexion);
 $productosControllers = new ProductoController($conexion);
 $pedidosControllers = new PedidosController($conexion);
+
 
 // Manejar la solicitud según la ruta
 switch ($route) {
@@ -128,10 +130,10 @@ switch ($route) {
         $productosControllers->eliminarCategoria();
         break;
 
-    case 'pedidosHome':
-        verificarAutenticacion();
-        $productosControllers->pedidoshome();
-        break;
+        // case 'pedidosHome':
+        //     verificarAutenticacion();
+        //     $productosControllers->pedidoshome();
+        //     break;
 
     case 'caracteristcaHome':
         verificarAutenticacion();
@@ -158,36 +160,84 @@ switch ($route) {
         $productosControllers->eliminarCaracteristicaSecundaria();
         break;
 
-    case 'pedidos':
+        // Rutas para Pedidos
+    case 'pedidosHome':
         verificarAutenticacion();
-        $pedidosController->index();
+        $pedidosControllers->index();
         break;
 
     case 'agregarPedido':
         verificarAutenticacion();
-        $pedidosController->agregarPedido();
+        $pedidosControllers->agregar();
         break;
 
     case 'modificarPedido':
         verificarAutenticacion();
-        $pedidosController->modificarPedido();
+        $pedidosControllers->modificarPedido();
         break;
 
     case 'eliminarPedido':
         verificarAutenticacion();
-        $pedidosController->eliminarPedido();
+        $pedidosControllers->eliminarPedido();
         break;
 
-    case 'obtenerPedido':
+    case 'obtenerPedidos':
         verificarAutenticacion();
-        $pedidosController->obtenerPedido();
+        $pedidosControllers->obtenerPedidos();
+        break;
+
+    case 'obtenerPedidoPorId':
+        verificarAutenticacion();
+        $pedidosControllers->obtenerPedidoPorId();
+        break;
+
+    case 'obtenerProveedores':
+        verificarAutenticacion();
+        $pedidosControllers->obtenerProveedores();
         break;
 
     case 'obtenerDetallesPedido':
         verificarAutenticacion();
-        $pedidosController->obtenerDetallesPedido();
+        $pedidosControllers->obtenerDetallesPedido();
         break;
 
+    case 'obtenerProductos':
+        verificarAutenticacion();
+        $pedidosControllers->obtenerProductos();
+        break;
+
+    case 'agregarDetallePedido':
+        verificarAutenticacion();
+        $pedidosControllers->agregarDetallePedido();
+        break;
+
+    case 'obtenerDetallePedidoPorId':
+        verificarAutenticacion();
+        $pedidosControllers->obtenerDetallePedidoPorId();
+        break;
+
+    case 'modificarDetallePedido':
+        verificarAutenticacion();
+        $pedidosControllers->modificarDetallePedido();
+
+    case 'eliminarDetallePedido':
+        verificarAutenticacion();
+        $pedidosControllers->eliminarDetallePedido();
+
+    case 'obtenerProductosPorProveedor':
+        verificarAutenticacion();
+        $pedidosControllers->obtenerProductosPorProveedor();
+        break;
+
+    case 'obtenerDetallePorId':
+        verificarAutenticacion();
+        $pedidosControllers->obtenerDetallePorId();
+        break;
+
+    case 'obtenerEstadisticasPedidos':
+        verificarAutenticacion();
+        $pedidosControllers->obtenerEstadisticas();
+        break;
 
     case 'login':
     default:
