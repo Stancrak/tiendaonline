@@ -165,8 +165,8 @@ class PedidosDao implements PedidosDAOInterface
     {
         try {
             $query = "SELECT p.idProducto, p.nombre, p.precio 
-                      FROM producto p 
-                      WHERE p.proveedor = :idProveedor"; // Asegúrate de que 'proveedor' sea el nombre correcto de la columna
+                  FROM producto p 
+                  WHERE p.proveedor = :idProveedor AND p.estado = 1";
             $stmt = $this->db->prepare($query);
             $stmt->execute(['idProveedor' => $idProveedor]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -178,24 +178,16 @@ class PedidosDao implements PedidosDAOInterface
 
     public function agregarDetallePedido($detalle)
     {
-        // Validaciones
-        if (
-            empty($detalle['idPedido']) ||
-            empty($detalle['idProducto']) ||
-            !isset($detalle['cantidad']) ||
-            !isset($detalle['precio']) ||
-            $detalle['cantidad'] <= 0 ||
-            $detalle['precio'] < 0 ||
-            empty($detalle['fechaCreacion']) // Nueva validación para la fecha
-        ) {
-            return false;
-        }
-
         try {
+            // Calcular subtotal si no viene en los datos
+            $subTotal = $detalle['subTotal'] ??
+                ($detalle['cantidad'] * $detalle['precio']) -
+                ($detalle['descuento'] ?? 0);
+
             $query = "INSERT INTO detallePedidoProvee 
-                      (idPedido, idProducto, cantidad, precio, descuento, subTotal, fechaCreacion) 
-                      VALUES 
-                      (:idPedido, :idProducto, :cantidad, :precio, :descuento, :subTotal, NOW())";
+                  (idPedido, idProducto, cantidad, precio, descuento, subTotal, fechaCreacion) 
+                  VALUES 
+                  (:idPedido, :idProducto, :cantidad, :precio, :descuento, :subTotal, :fechaCreacion)";
 
             $stmt = $this->db->prepare($query);
             $stmt->bindParam(':idPedido', $detalle['idPedido'], PDO::PARAM_STR);
@@ -203,13 +195,17 @@ class PedidosDao implements PedidosDAOInterface
             $stmt->bindParam(':cantidad', $detalle['cantidad'], PDO::PARAM_INT);
             $stmt->bindParam(':precio', $detalle['precio'], PDO::PARAM_STR);
             $stmt->bindParam(':descuento', $detalle['descuento'] ?? 0, PDO::PARAM_STR);
-            $stmt->bindParam(':subTotal', $detalle['subTotal'], PDO::PARAM_STR);
-            $stmt->bindParam(':fechaCreacion', $detalle['fechaCreacion'], PDO::PARAM_STR); // Vincula la fecha
+            $stmt->bindParam(':subTotal', $subTotal, PDO::PARAM_STR);
+            $stmt->bindParam(':fechaCreacion', $detalle['fechaCreacion'], PDO::PARAM_STR);
 
-            return $stmt->execute();
+            $resultado = $stmt->execute();
+
+            return $resultado ?
+                ['success' => true, 'message' => 'Detalle de pedido agregado correctamente'] :
+                ['success' => false, 'error' => 'No se pudo agregar el detalle de pedido'];
         } catch (PDOException $e) {
             error_log("Error al agregar detalle de pedido: " . $e->getMessage());
-            return false;
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
 
@@ -250,15 +246,39 @@ class PedidosDao implements PedidosDAOInterface
         }
     }
 
+    // public function obtenerDetallesPedido($idPedido)
+    // {
+    //     try {
+    //         $query = "SELECT dp.*, p.nombre AS nombreProducto 
+    //                   FROM detallePedidoProvee dp
+    //                   INNER JOIN producto p ON dp.idProducto = p.idProducto
+    //                   WHERE dp.idPedido = :idPedido";
+    //         $stmt = $this->db->prepare($query);
+    //         $stmt->bindParam(':idPedido', $idPedido, PDO::PARAM_INT);
+    //         $stmt->execute();
+    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    //     } catch (PDOException $e) {
+    //         error_log("Error al obtener detalles de pedido: " . $e->getMessage());
+    //         return false;
+    //     }
+    // }
+
     public function obtenerDetallesPedido($idPedido)
     {
         try {
-            $query = "SELECT dp.*, p.nombre AS nombreProducto 
+            $query = "SELECT 
+                        dp.idDetallePedido, 
+                        dp.idProducto,
+                        p.nombre AS nombreProducto, 
+                        dp.cantidad, 
+                        dp.precio, 
+                        dp.descuento,
+                        dp.subTotal AS subtotal
                       FROM detallePedidoProvee dp
-                      INNER JOIN producto p ON dp.idProducto = p.idProducto
+                      JOIN producto p ON dp.idProducto = p.idProducto
                       WHERE dp.idPedido = :idPedido";
             $stmt = $this->db->prepare($query);
-            $stmt->bindParam(':idPedido', $idPedido, PDO::PARAM_INT);
+            $stmt->bindParam(':idPedido', $idPedido, PDO::PARAM_STR);
             $stmt->execute();
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
@@ -314,6 +334,62 @@ class PedidosDao implements PedidosDAOInterface
             return $stmt->fetchColumn() > 0;
         } catch (PDOException $e) {
             error_log("Error al verificar existencia de producto: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Métodos de transacción
+    public function beginTransaction(): bool
+    {
+        return $this->db->beginTransaction();
+    }
+
+    public function commit(): bool
+    {
+        return $this->db->commit();
+    }
+
+    public function rollBack(): bool
+    {
+        return $this->db->rollBack();
+    }
+
+    // Método para calcular el total del pedido
+    public function calcularTotalPedido(string $idPedido): float
+    {
+        try {
+            $consulta = "SELECT SUM(subTotal) as total 
+                         FROM detallePedidoProvee 
+                         WHERE idPedido = :idPedido";
+
+            $stmt = $this->db->prepare($consulta);
+            $stmt->bindParam(':idPedido', $idPedido, PDO::PARAM_STR);
+            $stmt->execute();
+
+            $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            return $resultado['total'] ?? 0.0;
+        } catch (PDOException $e) {
+            error_log('Error al calcular total del pedido: ' . $e->getMessage());
+            return 0.0;
+        }
+    }
+
+    // Método para actualizar el total del pedido
+    public function actualizarTotalPedido(string $idPedido, float $total): bool
+    {
+        try {
+            $consulta = "UPDATE pedidoProveedor 
+                         SET total = :total 
+                         WHERE idPedido = :idPedido";
+
+            $stmt = $this->db->prepare($consulta);
+            $stmt->bindParam(':total', $total, PDO::PARAM_STR);
+            $stmt->bindParam(':idPedido', $idPedido, PDO::PARAM_STR);
+
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log('Error al actualizar total del pedido: ' . $e->getMessage());
             return false;
         }
     }

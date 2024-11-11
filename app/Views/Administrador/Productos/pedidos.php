@@ -12,6 +12,7 @@
 <head>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </head>
+
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12 mb-4">
@@ -46,7 +47,7 @@
                                             <i class='fas fa-trash-alt' style='color: #dc3545;'></i>
                                         </a>
                                         <!-- Botón para agregar detalles al pedido -->
-                                        <a href="#" class="btn-detalles" data-idpedido="<?= $pedido['idPedido'] ?>" data-idproveedor="<?= $pedido['idProveedor'] ?>" data-bs-toggle="modal" data-bs-target="#modalDetalle">
+                                        <a href="#" class="btn-detalles" data-idpedido="<?= $pedido['idPedido'] ?>" data-idproveedor="<?= $pedido['idProveedor'] ?>" data-bs-toggle="modal" data-bs-target="#modalDetalles">
                                             <i class='fas fa-list' style='color: #007bff;'></i>
                                         </a>
                                     </td>
@@ -64,6 +65,16 @@
 
         <!-- Sección de Detalles de Pedido -->
         <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+            <label for="idProveedor" class="form-label">Proveedor</label>
+            <select id="idProveedor" name="idProveedor" class="form-control" required>
+                <option value="" disabled selected>Seleccionar</option>
+                <?php foreach ($proveedores as $proveedor): ?>
+                    <option value="<?= htmlspecialchars($proveedor['idProveedor']) ?>">
+                        <?= htmlspecialchars($proveedor['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+
             <table class="table table-bordered" id="tablaDetallesPedido">
                 <thead>
                     <tr>
@@ -87,50 +98,150 @@
 </div>
 
 <!-- Modal para agregar detalles -->
-<div class="modal fade" id="modalDetalle" tabindex="-1" aria-labelledby="modalDetalleLabel">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+<!-- Modal para agregar/editar detalles de pedido -->
+<div class="modal fade" id="modalDetalles" tabindex="-1" aria-labelledby="modalDetallesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="modalDetalleLabel">Agregar Detalle al Pedido</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title" id="modalDetallesLabel">
+                    <i class="fas fa-list-alt me-2"></i> Gestión de Detalles de Pedido
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form id="detalleForm" class="needs-validation" novalidate>
-                    <input type="hidden" id="idPedidoDetalle" value="">
-                    <input type="hidden" id="idProveedorDetalle" value=""> <!-- Campo oculto para el ID del proveedor -->
 
-                    <div class="mb-3">
-                        <label for="producto" class="form-label">Producto</label>
-                        <select id="producto" class="form-control" required>
-                            <option value="" disabled selected>Seleccionar un producto</option>
-                            <!-- Los productos se cargarán aquí dinámicamente -->
+            <div class="modal-body">
+                <!-- Información del Pedido -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">ID Pedido</label>
+                        <input type="text" id="idPedidoDetalle" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label">Proveedor</label>
+                        <select id="proveedorDetalle" class="form-control" disabled>
+                            <option>Seleccionar Proveedor</option>
+                            <?php foreach ($proveedores as $proveedor): ?>
+                                <option value="<?= $proveedor['idProveedor'] ?>">
+                                    <?= $proveedor['nombre'] ?>
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="cantidad" class="form-label">Cantidad</label>
-                        <input type="number" id="cantidad" class="form-control" min="1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="precio" class="form-label">Precio</label>
-                        <input type="number" id="precio" class="form-control" step="0.01" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="descuento" class="form-label">Descuento</label>
-                        <input type="number" id="descuento" class="form-control" step="0.01">
-                    </div>
-                    <div class="mb-3">
-                        <label for="subTotal" class="form-label">Subtotal</label>
-                        <input type="number" id="subTotal" class="form-control" step="0.01" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="fechaCreacion" class="form-label">Fecha de Creación</label>
-                        <input type="text" id="fechaCreacion" class="form-control" readonly value="<?php echo date('Y-m-d H:i:s'); ?>">
+                </div>
+
+                <!-- Formulario para Agregar/Editar Detalle -->
+                <form id="formDetallesPedido" class="needs-validation" novalidate>
+                    <input type="hidden" id="idDetallePedido" name="idDetallePedido">
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="productoDetalle" class="form-label">Producto</label>
+                            <select class="form-select" id="producto" name="idProducto" required>
+                                <option value="" disabled selected>Seleccionar un producto</option>
+                                <!-- Los productos se cargarán aquí dinámicamente -->
+                            </select>
+                            <div class="invalid-feedback">Seleccione un producto</div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="cantidadDetalle" class="form-label">Cantidad</label>
+                            <input type="number"
+                                id="cantidadDetalle"
+                                name="cantidad"
+                                class="form-control"
+                                min="1"
+                                required>
+                            <div class="invalid-feedback">Cantidad inválida</div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="precioDetalle" class="form-label">Precio</label>
+                            <input type="number"
+                                id="precioDetalle"
+                                name="precio"
+                                class="form-control"
+                                step="0.01"
+                                min="0"
+                                required>
+                            <div class="invalid-feedback">Precio inválido</div>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label for="descuentoDetalle" class="form-label">Descuento</label>
+                            <input type="number"
+                                id="descuentoDetalle"
+                                name="descuento"
+                                class="form-control"
+                                step="0.01"
+                                min="0">
+                        </div>
+
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" id="btnAgregarDetalle" class="btn btn-success me-2">
+                                <i class="fas fa-plus"></i> Agregar
+                            </button>
+                            <button type="button" id="btnActualizarDetalle" class="btn btn-warning" style="display:none;">
+                                <i class="fas fa-sync"></i> Actualizar
+                            </button>
+                        </div>
                     </div>
                 </form>
+
+                <!-- Tabla de Detalles -->
+                <div class="table-responsive mt-4">
+                    <table class="table table-striped" id="tablaDetallesPedido">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio</th>
+                                <th>Descuento</th>
+                                <th>Subtotal</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaDetallesPedido">
+                            <!-- Detalles se cargarán dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Resumen de Pedido -->
+                <div class="row mt-3">
+                    <div class="col-md-6 offset-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Resumen del Pedido</h5>
+                                <div class="row">
+                                    <div class="col-6">Total Items:</div>
+                                    <div class="col-6" id="totalItemsResumen">0</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">Subtotal:</div>
+                                    <div class="col-6" id="subtotalResumen">$0.00</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">Descuentos:</div>
+                                    <div class="col-6" id="descuentosResumen">$0.00</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6"><strong>Total:</strong></div>
+                                    <div class="col-6"><strong id="totalResumen">$0.00</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
             <div class="modal-footer">
-                <button type="button" class="btn btn-success" id="btnGuardarDetalle">Guardar Detalle</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cerrar
+                </button>
+                <button type="button" class="btn btn-primary" id="btnGuardarDetalles">
+                    <i class="fas fa-save me-2"></i>Guardar Detalles
+                </button>
             </div>
         </div>
     </div>
@@ -269,27 +380,25 @@
         const $btnGuardar = $("#btnGuardar");
         const $btnModificar = $("#btnModificar");
         const $listaPedidos = $("#listaPedidos");
+        const $modalDetalles = $('#modalDetalles');
+        const $formDetalles = $('#formDetallesPedido');
+        const $tablaDetalles = $('#tablaDetallesPedido');
+        const $listaDetalles = $('#listaDetallesPedido');
 
-        // Función para calcular el subtotal
-        document.getElementById('cantidad').addEventListener('input', calcularSubtotal);
-        document.getElementById('precio').addEventListener('input', calcularSubtotal);
-        document.getElementById('descuento').addEventListener('input', calcularSubtotal);
-
-        function calcularSubtotal() {
-            const cantidad = parseFloat(document.getElementById('cantidad').value) || 0;
-            const precio = parseFloat(document.getElementById('precio').value) || 0;
-            const descuento = parseFloat(document.getElementById('descuento').value) || 0;
-
-            const subTotal = (cantidad * precio) - descuento;
-            document.getElementById('subTotal').value = subTotal.toFixed(2);
+        // Funciones de Inicialización
+        function inicializarModalDetalles() {
+            // Resetear formulario
+            $formDetalles[0].reset();
+            $('#idDetallePedido').val('');
+            $('#btnAgregarDetalle').show();
+            $('#btnActualizarDetalle').hide();
         }
 
-
-        $("#proveedoresSelect").on("change", function() {
-            const idProveedor = $(this).val();
-            if (idProveedor) { // Asegúrate de que hay un valor seleccionado
-                cargarProductosPorProveedor(idProveedor);
-            }
+        // Evento para nuevo pedido
+        $btnNuevo.on("click", function() {
+            limpiarFormulario();
+            $btnModificar.hide();
+            $btnGuardar.show();
         });
 
         // Limpiar formulario
@@ -299,24 +408,37 @@
             $form.removeClass('was-validated');
         }
 
-        // Mostrar alertas
-        function mostrarAlerta(icon, title, text) {
-            return Swal.fire({
-                icon: icon,
-                title: title,
-                text: text,
-                confirmButtonText: 'Aceptar',
-                timer: 2000,
-                showConfirmButton: true
-            });
+        function calcularSubtotal() {
+            const cantidad = parseFloat($('#cantidadDetalle').val()) || 0;
+            const precio = parseFloat($('#precioDetalle').val()) || 0;
+            const descuento = parseFloat($('#descuentoDetalle').val()) || 0;
+
+            const subtotal = (cantidad * precio) - descuento;
+            return subtotal.toFixed(2);
         }
 
-        // Evento para nuevo pedido
-        $btnNuevo.on("click", function() {
-            limpiarFormulario();
-            $btnModificar.hide();
-            $btnGuardar.show();
-        });
+        function actualizarResumenPedido() {
+            const detalles = [];
+            let totalItems = 0;
+            let subtotal = 0;
+            let descuentoTotal = 0;
+
+            $('#listaDetallesPedido tr').each(function() {
+                const cantidad = parseFloat($(this).find('td:nth-child(3)').text()) || 0;
+                const precio = parseFloat($(this).find('td:nth-child(4)').text()) || 0;
+                const descuento = parseFloat($(this).find('td:nth-child(5)').text()) || 0;
+                const subtotalDetalle = parseFloat($(this).find('td:nth-child(6)').text()) || 0;
+
+                totalItems += cantidad;
+                subtotal += precio * cantidad;
+                descuentoTotal += descuento;
+            });
+
+            $('#totalItemsResumen').text(totalItems.toFixed(2));
+            $('#subtotalResumen').text(`$${subtotal.toFixed(2)}`);
+            $('#descuentosResumen').text(`$${descuentoTotal.toFixed(2)}`);
+            $('#totalResumen').text(`$${(subtotal - descuentoTotal).toFixed(2)}`);
+        }
 
         // Guardar nuevo pedido
         $("#btnGuardar").on("click", function(event) {
@@ -456,33 +578,11 @@
             });
         });
 
-        // Cargar detalles del pedido
-        // Al hacer clic en el botón de detalles, cargar el idPedido y el idProveedor
-        // $("#listaPedidos").on("click", ".btn-detalles", function() {
-        //     const idPedido = $(this).data('idpedido');
-        //     const idProveedor = $(this).data('idproveedor'); // Obtener el ID del proveedor
 
-        //     $("#idPedidoDetalle").val(idPedido); // Guardar el ID del pedido en el campo oculto
+        // Eventos para el Modal de Detalles
+        // Abrir modal de detalles
 
-        //     // Obtener el proveedor asociado al pedido
-        //     const proveedor = $(this).closest('tr').find('td:nth-child(2)').text().trim(); // Obtener el nombre del proveedor
-
-
-        //     // Cargar productos del proveedor seleccionado
-        //     cargarProductosPorProveedor(idProveedor);
-        // });
-
-        $("#listaPedidos").on("click", ".btn-detalles", function() {
-            const idPedido = $(this).data('idpedido');
-            const idProveedor = $(this).data('idproveedor'); // Obtener el ID del proveedor
-
-            $("#idPedidoDetalle").val(idPedido); // Guardar el ID del pedido en el campo oculto
-            $("#idProveedorDetalle").val(idProveedor); // Guardar el ID del proveedor en el campo oculto
-
-            // Cargar productos del proveedor seleccionado
-            cargarProductosPorProveedor(idProveedor);
-        });
-
+        // Función para cargar productos por proveedor
         // Función para cargar productos por proveedor
         function cargarProductosPorProveedor(idProveedor) {
             const $productoSelect = $("#producto");
@@ -504,7 +604,7 @@
                 .then(response => response.json())
                 .then(productos => {
                     if (productos && productos.length > 0) {
-                        productos.forEach(producto => {
+                        productos.forEach(function(producto) {
                             const option = `
                     <option value="${producto.idProducto}">
                         ${producto.nombre} - $${producto.precio}
@@ -522,196 +622,342 @@
                 });
         }
 
-        // Agregar evento al selector de proveedores
-        $("#proveedorDetalle").on("change", function() {
-            const idProveedor = $(this).val();
-            if (idProveedor) {
-                cargarProductosPorProveedor(idProveedor);
-            }
+        // Evento para cargar productos cuando se selecciona un proveedor
+        $('.btn-detalles').on('click', function() {
+            const idPedido = $(this).data('idpedido');
+            const idProveedor = $(this).data('idproveedor');
+
+            // Setear valores iniciales
+            $('#idPedidoDetalle').val(idPedido);
+            $('#proveedorDetalle').val(idProveedor);
+
+            // Cargar productos del proveedor
+            cargarProductosPorProveedor(idProveedor);
+
+            // Cargar detalles existentes
+            cargarDetallesPedido(idPedido);
         });
 
-        $("#btnGuardarDetalle").on("click", function(event) {
-            event.preventDefault();
+        // Función para cargar detalles del pedido
+        // function cargarDetallesPedido(idPedido) {
+        //     $.ajax({
+        //         url: '/tiendaonline/?route=obtenerDetallesPedido',
+        //         method: 'POST',
+        //         data: JSON.stringify({
+        //             idPedido: idPedido
+        //         }),
+        //         contentType: 'application/json',
+        //         success: function(response) {
+        //             const detalles = JSON.parse(response);
+        //             const tbody = $('#tablaDetalles tbody');
+        //             tbody.empty();
+        //             detalles.forEach(function(detalle) {
+        //                 tbody.append(`
+        //                 <tr>
+        //                     <td>${detalle.idDetallePedido}</td>
+        //                     <td>${detalle.nombreProducto}</td>
+        //                     <td>${detalle.cantidad}</td>
+        //                     <td>${detalle.precio}</td>
+        //                     <td>${detalle.descuento}</td>
+        //                     <td>${detalle.subTotal}</td>
+        //                     <td>
+        //                         <button class="btn btn-sm btn-warning editarDetalle" data-id="${detalle.idDetallePedido}">Editar</button>
+        //                         <button class="btn btn-sm btn-danger eliminarDetalle" data-id="${detalle.idDetallePedido}">Eliminar</button>
+        //                     </td>
+        //                 </tr>
+        //             `);
+        //             });
+        //         },
+        //         error: function(xhr, status, error) {
+        //             console.error('Error al cargar detalles:', error);
+        //             Swal.fire({
+        //                 icon: 'error',
+        //                 title: 'Error',
+        //                 text: 'Error al cargar los detalles del pedido'
+        //             });
+        //         }
+        //     });
+        // }
 
-            const idPedido = $("#idPedidoDetalle").val();
-            const idProveedor = $("#idProveedorDetalle").val(); // Obtener el ID del proveedor
-            const detalleData = {
-                idPedido: idPedido,
-                idProveedor: idProveedor, // Incluir el ID del proveedor
-                idProducto: $("#producto").val(),
-                cantidad: $("#cantidad").val(),
-                precio: $("#precio").val(),
-                descuento: $("#descuento").val() || 0,
-                fechaCreacion: new Date().toISOString() // Usar ISO para la fecha
-            };
-
-            // Validaciones
-            if (!detalleData.idProducto || !detalleData.cantidad || !detalleData.precio) {
-                mostrarAlerta('error', 'Error', 'Por favor, complete todos los campos requeridos.');
-                return;
-            }
-
-            fetch('/tiendaonline/?route=agregarDetallePedido', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(detalleData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        mostrarAlerta('success', 'Éxito', data.message).then(() => {
-                            $("#detalleForm")[0].reset(); // Limpiar el formulario
-                            $('#modalDetalle').modal('hide'); // Cerrar el modal
-                            cargarDetallesPedido(idPedido); // Recargar detalles del pedido
-                        });
-                    } else {
-                        mostrarAlerta('error', 'Error', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    mostrarAlerta('error', 'Error', 'Ocurrió un problema al guardar el detalle');
-                });
-        });
-
-        // Cargar detalles del pedido
         function cargarDetallesPedido(idPedido) {
-            fetch('/tiendaonline/?route=obtenerDetallesPedido', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        idPedido: idPedido
-                    })
-                })
-                .then(response => response.json())
-                .then(detalles => {
-                    const $listaDetalles = $("#listaDetallesPedidos");
-                    $listaDetalles.empty(); // Limpiar la lista de detalles
+            $.ajax({
+                url: '/tiendaonline/?route=obtenerDetallesPedido',
+                method: 'POST',
+                data: JSON.stringify({
+                    idPedido: idPedido
+                }),
+                contentType: 'application/json',
+                success: function(response) {
+                    // Parsear la respuesta si es necesario
+                    const detalles = typeof response === 'string' ? JSON.parse(response) : response;
 
-                    // Iterar sobre los detalles y agregarlos a la tabla
-                    detalles.forEach(detalle => {
+                    // Seleccionar el tbody correcto
+                    const $listaDetalles = $('#listaDetallesPedido');
+                    $listaDetalles.empty();
+
+                    detalles.forEach(function(detalle) {
                         const fila = `
-                    <tr>
+                    <tr data-id="${detalle.idDetallePedido}">
                         <td>${detalle.idDetallePedido}</td>
-                        <td>${detalle.idPedido}</td>
-                        <td>${detalle.nombreProducto}</td>
+                        <td data-idproducto="${detalle.idProducto}">
+                            ${detalle.nombreProducto}
+                        </td>
                         <td>${detalle.cantidad}</td>
                         <td>${detalle.precio}</td>
                         <td>${detalle.descuento}</td>
-                        <td>${detalle.fechaCreacion}</td>
+                        <td>${detalle.subtotal}</td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="cargarDetalleMod(${detalle.idDetallePedido})">Modificar</button>
-                            <button class="btn btn-danger btn-sm btn-delete-detalle" data-id="${detalle.idDetallePedido}">Eliminar</button>
+                            <button class="btn btn-sm btn-warning btnEditarDetalle">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger btnEliminarDetalle">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
                         $listaDetalles.append(fila);
                     });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
+
+                    actualizarResumenPedido();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al cargar detalles:', error);
                     mostrarAlerta('error', 'Error', 'No se pudieron cargar los detalles del pedido');
-                });
+                }
+            });
         }
 
-        // Cargar detalle para modificar
-        window.cargarDetalleMod = function(idDetalle) {
-            fetch('/tiendaonline/?route=obtenerDetallePorId', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        idDetalle: idDetalle
-                    })
-                })
-                .then(response => response.json())
-                .then(detalle => {
-                    // Llenar los campos del formulario de detalles
-                    $("#idDetalle").val(detalle.idDetalle);
-                    $("#producto").val(detalle.producto);
-                    $("#cantidad").val(detalle.cantidad);
-                    $("#precio").val(detalle.precio);
-                    $("#descuento").val(detalle.descuento);
+        // Abrir modal de detalles
+        $('.btn-detalles').on('click', function() {
+            const idPedido = $(this).data('idpedido');
+            const idProveedor = $(this).data('idproveedor');
 
-                    // Mostrar botón de modificar, ocultar botón de agregar
-                    $("#btnAgregarDetalle").hide(); // Asegúrate de que este botón existe
-                    $("#btnModificarDetalle").show(); // Asegúrate de que este botón existe
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    mostrarAlerta('error', 'Error', 'No se pudo cargar el detalle');
-                });
-        }
+            // Setear valores iniciales
+            $('#idPedidoDetalle').val(idPedido);
+            $('#proveedorDetalle').val(idProveedor);
 
-        // Cargar detalle para modificar
-        window.cargarDetalleMod = function(idDetalle) {
-            fetch('/tiendaonline/?route=obtenerDetallePorId', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        idDetalle: idDetalle
-                    })
-                })
-                .then(response => response.json())
-                .then(detalle => {
-                    // Llenar los campos del formulario de detalles
-                    $("#idDetalle").val(detalle.idDetalle);
-                    $("#idProducto").val(detalle.idProducto);
-                    $("#cantidad").val(detalle.cantidad);
-                    $("#precio").val(detalle.precio);
-                    $("#descuento").val(detalle.descuento);
+            // Cargar productos del proveedor
+            const $selectProductos = $('#producto'); // Cambié aquí de '#productoDetalle' a '#producto'
+            $selectProductos.empty();
+            $selectProductos.append('<option value="" disabled selected>Seleccionar un producto</option>');
 
-                    // Mostrar botón de modificar, ocultar botón de agregar
-                    $("#btnAgregarDetalle").hide(); // Asegúrate de que este botón existe
-                    $("#btnModificarDetalle").show(); // Asegúrate de que este botón existe
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    mostrarAlerta('error', 'Error', 'No se pudo cargar el detalle');
-                });
-        }
+            $.ajax({
+                url: '/tiendaonline/?route=obtenerProductosPorProveedor',
+                method: 'POST',
+                data: JSON.stringify({
+                    idProveedor: idProveedor
+                }),
+                contentType: 'application/json',
+                success: function(productos) {
+                    productos.forEach(function(producto) {
+                        $selectProductos.append(`
+                    <option value="${producto.idProducto}">
+                        ${producto.nombre} - $${producto.precio}
+                    </option>
+                `);
+                    });
+                },
+                error: function(xhr, status, error) {
+                    mostrarAlerta('error', 'Error', 'No se pudieron cargar los productos');
+                }
+            });
 
-        // Modificar detalle
-        $("#btnModificarDetalle").on("click", function(event) {
-            event.preventDefault();
-
-            const formData = new FormData($("#detalleForm")[0]); // Asegúrate de que este formulario existe
-            const detalleData = Object.fromEntries(formData.entries());
-
-            fetch('/tiendaonline/?route=modificarDetallePedido', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(detalleData)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        mostrarAlerta('success', 'Éxito', data.message).then(() => {
-                            cargarDetallesPedido(detalleData.idPedido); // Recargar detalles del pedido
-                            $('#modalDetalle').modal('hide'); // Cerrar el modal
-                        });
-                    } else {
-                        mostrarAlerta('error', 'Error', data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    mostrarAlerta('error', 'Error', 'Ocurrió un problema al modificar el detalle');
-                });
+            // Cargar detalles existentes
+            cargarDetallesPedido(idPedido);
         });
 
-        // Eliminar detalle de pedido
-        $("#listaDetallesPedidos").on("click", ".btn-delete-detalle", function() {
-            const idDetalle = $(this).data('id');
+        // Agregar detalle
+        $('#btnAgregarDetalle').on('click', function() {
+            if (!$formDetalles[0].checkValidity()) {
+                $formDetalles.addClass('was-validated');
+                return;
+            }
+
+            const idPedido = $('#idPedidoDetalle').val();
+            const producto = $('#productoDetalle option:selected');
+            const cantidad = $('#cantidadDetalle').val();
+            const precio = $('#precioDetalle').val();
+            const descuento = $('#descuentoDetalle').val() || 0;
+            const subtotal = calcularSubtotal();
+
+            const nuevoDetalle = {
+                idPedido: idPedido,
+                idProducto: producto.val(),
+                nombreProducto: producto.text().split(' - ')[0],
+                cantidad: cantidad,
+                precio: precio,
+                descuento: descuento,
+                subtotal: subtotal
+            };
+
+            // Agregar fila a la tabla
+            const nuevaFila = `
+            <tr>
+                <td></td>
+                <td>${nuevoDetalle.nombreProducto}</td>
+                <td>${nuevoDetalle.cantidad}</td>
+                <td>${nuevoDetalle.precio}</td>
+                <td>${nuevoDetalle.descuento}</td>
+                <td>${nuevoDetalle.subtotal}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning btnEditarDetalle">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger btnEliminarDetalle">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+            $listaDetalles.append(nuevaFila);
+
+            // Guardar detalle en base de datos
+            $.ajax({
+                url: '/tiendaonline/?route=agregarDetallePedido',
+                method: 'POST',
+                data: JSON.stringify(nuevoDetalle),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        mostrarAlerta('success', 'Éxito', 'Detalle agregado correctamente');
+                        actualizarResumenPedido();
+                        $formDetalles[0].reset();
+                    } else {
+                        mostrarAlerta('error', 'Error', response.error);
+                    }
+                },
+                error: function() {
+                    mostrarAlerta('error', 'Error', 'No se pudo agregar el detalle');
+                }
+            });
+        });
+
+        // Cargar detalles de pedido existentes
+        function cargarDetallesPedido(idPedido) {
+            $.ajax({
+                url: '/tiendaonline/?route=obtenerDetallesPedido',
+                method: 'POST',
+                data: JSON.stringify({
+                    idPedido: idPedido
+                }),
+                contentType: 'application/json',
+                success: function(detalles) {
+                    $listaDetalles.empty();
+                    detalles.forEach(function(detalle) {
+                        const fila = `
+                        <tr data-id="${detalle.idDetallePedido}">
+                            <td>${detalle.idDetallePedido}</td>
+                            <td>${detalle.nombreProducto}</td>
+                            <td>${detalle.cantidad}</td>
+                            <td>${detalle.precio}</td>
+                            <td>${detalle.descuento}</td>
+                            <td>${detalle.subtotal}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning btnEditarDetalle">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-danger btnEliminarDetalle">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                        $listaDetalles.append(fila);
+                    });
+                    actualizarResumenPedido();
+                },
+                error: function() {
+                    mostrarAlerta('error', 'Error', 'No se pudieron cargar los detalles');
+                }
+            });
+        }
+
+        // Editar detalle
+        $listaDetalles.on('click', '.btnEditarDetalle', function() {
+            const $fila = $(this).closest('tr');
+            const idDetalle = $fila.data('id');
+
+            // Cargar datos del detalle para edición
+            $.ajax({
+                url: '/tiendaonline/?route=obtenerDetallePorId',
+                method: 'POST',
+                data: JSON.stringify({
+                    idDetallePedido: idDetalle
+                }),
+                contentType: 'application/json',
+                success: function(detalle) {
+                    // Llenar formulario para edición
+                    $('#idDetallePedido').val(detalle.idDetallePedido);
+                    $('#productoDetalle').val(detalle.idProducto);
+                    $('#cantidadDetalle').val(detalle.cantidad);
+                    $('#precioDetalle').val(detalle.precio);
+                    $('#descuentoDetalle').val(detalle.descuento);
+
+                    // Cambiar botones
+                    $('#btnAgregarDetalle').hide();
+                    $('#btnActualizarDetalle').show();
+                },
+                error: function() {
+                    mostrarAlerta('error', 'Error', 'No se pudo cargar el detalle');
+                }
+            });
+        });
+
+        // Actualizar detalle
+        $('#btnActualizarDetalle').on('click', function() {
+            if (!$formDetalles[0].checkValidity()) {
+                $formDetalles.addClass('was-validated');
+                return;
+            }
+
+            const detalle = {
+                idDetallePedido: $('#idDetallePedido').val(),
+                idPedido: $('#idPedidoDetalle').val(),
+                idProducto: $('#productoDetalle').val(),
+                nombreProducto: $('#productoDetalle option:selected').text().split(' - ')[0],
+                cantidad: $('#cantidadDetalle').val(),
+                precio: $('#precioDetalle').val(),
+                descuento: $('#descuentoDetalle').val() || 0,
+                subtotal: calcularSubtotal()
+            };
+
+            $.ajax({
+                url: '/tiendaonline/?route=modificarDetallePedido',
+                method: 'POST',
+                data: JSON.stringify(detalle),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        // Actualizar fila en la tabla
+                        const $fila = $(`#listaDetallesPedido tr[data-id="${detalle.idDetallePedido}"]`);
+                        $fila.find('td:nth-child(2)').text(detalle.nombreProducto);
+                        $fila.find('td:nth-child(3)').text(detalle.cantidad);
+                        $fila.find('td:nth-child(4)').text(detalle.precio);
+                        $fila.find('td:nth-child(5)').text(detalle.descuento);
+                        $fila.find('td:nth-child(6)').text(detalle.subtotal);
+
+                        mostrarAlerta('success', 'Éxito', 'Detalle actualizado correctamente');
+                        actualizarResumenPedido();
+
+                        // Resetear formulario
+                        $formDetalles[0].reset();
+                        $('#btnActualizarDetalle').hide();
+                        $('#btnAgregarDetalle').show();
+                    } else {
+                        mostrarAlerta('error', 'Error', response.error);
+                    }
+                },
+                error: function() {
+                    mostrarAlerta('error', 'Error', 'No se pudo actualizar el detalle');
+                }
+            });
+        });
+
+        // Eliminar detalle
+        $listaDetalles.on('click', '.btnEliminarDetalle', function() {
+            const $fila = $(this).closest('tr');
+            const idDetalle = $fila.data('id');
 
             Swal.fire({
                 title: '¿Estás seguro?',
@@ -724,32 +970,266 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch('/tiendaonline/?route=eliminarDetallePedido', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                idDetalle: idDetalle
-                            })
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                mostrarAlerta('success', 'Éxito', data.message).then(() => {
-                                    cargarDetallesPedido(data.idPedido); // Asegúrate de que idPedido está presente en data
-                                });
+                    $.ajax({
+                        url: '/tiendaonline/?route=eliminarDetallePedido',
+                        method: 'POST',
+                        data: JSON.stringify({
+                            idDetallePedido: idDetalle,
+                            idPedido: $('#idPedidoDetalle').val()
+                        }),
+                        contentType: 'application/json',
+                        success: function(response) {
+                            if (response.success) {
+                                // Eliminar fila de la tabla
+                                $fila.remove();
+
+                                mostrarAlerta('success', 'Éxito', 'Detalle eliminado correctamente');
+                                actualizarResumenPedido();
                             } else {
-                                mostrarAlerta('error', 'Error', data.error);
+                                mostrarAlerta('error', 'Error', response.error);
                             }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            mostrarAlerta('error', 'Error', 'Ocurrió un problema al eliminar el detalle');
-                        });
+                        },
+                        error: function() {
+                            mostrarAlerta('error', 'Error', 'No se pudo eliminar el detalle');
+                        }
+                    });
                 }
             });
         });
+
+        // Guardar todos los detalles del pedido
+        $('#btnGuardarDetalles').on('click', function() {
+            const idPedido = $('#idPedidoDetalle').val();
+            const detalles = [];
+
+            // Recopilar detalles de la tabla
+            $('#listaDetallesPedido tr').each(function() {
+                const detalle = {
+                    idDetallePedido: $(this).data('id'),
+                    idPedido: idPedido,
+                    idProducto: $(this).find('td:nth-child(2)').data('idproducto'),
+                    cantidad: parseFloat($(this).find('td:nth-child(3)').text()),
+                    precio: parseFloat($(this).find('td:nth-child(4)').text()),
+                    descuento: parseFloat($(this).find('td:nth-child(5)').text()),
+                    subtotal: parseFloat($(this).find('td:nth-child(6)').text())
+                };
+                detalles.push(detalle);
+            });
+
+            $.ajax({
+                url: '/tiendaonline/?route=guardarDetallesPedido',
+                method: 'POST',
+                data: JSON.stringify({
+                    idPedido: idPedido,
+                    detalles: detalles
+                }),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.success) {
+                        mostrarAlerta('success', 'Éxito', 'Detalles del pedido guardados correctamente');
+                        $('#modalDetalles').modal('hide');
+                        // Opcional: Actualizar lista de pedidos
+                        // cargarPedidos();
+                    } else {
+                        mostrarAlerta('error', 'Error', response.error);
+                    }
+                },
+                error: function() {
+                    mostrarAlerta('error', 'Error', 'No se pudieron guardar los detalles');
+                }
+            });
+        });
+
+        // Eventos adicionales
+        $('#cantidadDetalle, #precioDetalle, #descuentoDetalle').on('input', function() {
+            const subtotal = calcularSubtotal();
+            $('#subtotalDetalle').text(`$${subtotal}`);
+        });
+
+        // Inicialización
+        $modalDetalles.on('hidden.bs.modal', inicializarModalDetalles);
+    });
+
+    // Función global para mostrar alertas
+    function mostrarAlerta(icon, title, text) {
+        return Swal.fire({
+            icon: icon,
+            title: title,
+            text: text,
+            confirmButtonText: 'Aceptar',
+            timer: 3000,
+            showConfirmButton: true
+        });
+    }
+    // Validaciones adicionales
+    function validarDetalles() {
+        const detalles = $('#listaDetallesPedido tr');
+
+        if (detalles.length === 0) {
+            mostrarAlerta('warning', 'Advertencia', 'Debe agregar al menos un detalle al pedido');
+            return false;
+        }
+
+        let productosUnicos = new Set();
+        let detallesValidos = true;
+
+        detalles.each(function() {
+            const idProducto = $(this).find('td:nth-child(2)').data('idproducto');
+            const cantidad = parseFloat($(this).find('td:nth-child(3)').text());
+            const precio = parseFloat($(this).find('td:nth-child(4)').text());
+
+            // Validar productos únicos
+            if (productosUnicos.has(idProducto)) {
+                mostrarAlerta('warning', 'Advertencia', 'No se pueden agregar productos duplicados');
+                detallesValidos = false;
+                return false;
+            }
+            productosUnicos.add(idProducto);
+
+            // Validar cantidades y precios
+            if (cantidad <= 0 || precio <= 0) {
+                mostrarAlerta('warning', 'Advertencia', 'Cantidad y precio deben ser mayores a cero');
+                detallesValidos = false;
+                return false;
+            }
+        });
+
+        return detallesValidos;
+    }
+
+    // Gestión de stock y disponibilidad
+    function verificarDisponibilidadStock(detalles) {
+        return new Promise((resolve, reject) => {
+            $.ajax({
+                url: '/tiendaonline/?route=verificarStockProductos',
+                method: 'POST',
+                data: JSON.stringify({
+                    detalles: detalles
+                }),
+                contentType: 'application/json',
+                success: function(response) {
+                    if (response.disponible) {
+                        resolve(true);
+                    } else {
+                        // Mostrar productos sin stock
+                        let mensajeError = 'Los siguientes productos no tienen stock suficiente:\n';
+                        response.productosAgotados.forEach(producto => {
+                            mensajeError += `- ${producto.nombre} (Stock disponible: ${producto.stockDisponible})\n`;
+                        });
+                        mostrarAlerta('error', 'Stock Insuficiente', mensajeError);
+                        reject(false);
+                    }
+                },
+                error: function() {
+                    mostrarAlerta('error', 'Error', 'No se pudo verificar la disponibilidad de stock');
+                    reject(false);
+                }
+            });
+        });
+    }
+
+    // Cálculo de totales con mayor precisión
+    function calcularTotalesPedido() {
+        const detalles = $('#listaDetallesPedido tr');
+        let totalItems = 0;
+        let subtotalGeneral = 0;
+        let descuentoTotal = 0;
+        let impuestoTotal = 0;
+
+        detalles.each(function() {
+            const cantidad = parseFloat($(this).find('td:nth-child(3)').text()) || 0;
+            const precio = parseFloat($(this).find('td:nth-child(4)').text()) || 0;
+            const descuento = parseFloat($(this).find('td:nth-child(5)').text()) || 0;
+
+            const subtotalLinea = cantidad * precio;
+
+            totalItems += cantidad;
+            subtotalGeneral += subtotalLinea;
+            descuentoTotal += descuento;
+        });
+
+        // Calcular impuesto (ejemplo: IVA 19%)
+        impuestoTotal = subtotalGeneral * 0.19;
+
+        const totalGeneral = subtotalGeneral - descuentoTotal + impuestoTotal;
+
+        return {
+            totalItems,
+            subtotalGeneral: Number(subtotalGeneral.toFixed(2)),
+            descuentoTotal: Number(descuentoTotal.toFixed(2)),
+            impuestoTotal: Number(impuestoTotal.toFixed(2)),
+            totalGeneral: Number(totalGeneral.toFixed(2))
+        };
+    }
+
+    // Exportación de detalles
+    function exportarDetallesPedido() {
+        const idPedido = $('#idPedidoDetalle').val();
+
+        $.ajax({
+            url: '/tiendaonline/?route=exportarDetallesPedido',
+            method: 'POST',
+            data: JSON.stringify({
+                idPedido: idPedido
+            }),
+            xhrFields: {
+                responseType: 'blob'
+            },
+            success: function(data) {
+                const a = document.createElement('a');
+                const url = window.URL.createObjectURL(data);
+                a.href = url;
+                a.download = `detalles_pedido_${idPedido}.xlsx`;
+                document.body.append(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+            },
+            error: function() {
+                mostrarAlerta('error', 'Error', 'No se pudo exportar los detalles');
+            }
+        });
+    }
+
+    // Eventos adicionales
+    $('#btnExportarDetalles').on('click', exportarDetallesPedido);
+
+    // Extensión de funcionalidades
+    $.fn.pedidosDetalles = function(opciones) {
+        const configuracion = $.extend({
+            modoEdicion: true,
+            permiteEliminar: true,
+            mostrarTotales: true
+        }, opciones);
+
+        return this.each(function() {
+            const $tabla = $(this);
+
+            // Aplicar configuraciones
+            if (!configuracion.modoEdicion) {
+                $tabla.find('.btnEditarDetalle, .btnEliminarDetalle').hide();
+            }
+
+            if (!configuracion.permiteEliminar) {
+                $tabla.find('.btnEliminarDetalle').prop('disabled', true);
+            }
+
+            if (configuracion.mostrarTotales) {
+                const totales = calcularTotalesPedido();
+                $('#totalItemsResumen').text(totales.totalItems);
+                $('#subtotalResumen').text(`$${totales.subtotalGeneral}`);
+                $('#descuentosResumen').text(`$${totales.descuentoTotal}`);
+                $('#impuestoResumen').text(`$${totales.impuestoTotal}`);
+                $('#totalResumen').text(`$${totales.totalGeneral}`);
+            }
+        });
+    };
+
+    // Ejemplo de uso
+    $('#tablaDetallesPedido').pedidosDetalles({
+        modoEdicion: true,
+        permiteEliminar: true,
+        mostrarTotales: true
     });
 </script>
 

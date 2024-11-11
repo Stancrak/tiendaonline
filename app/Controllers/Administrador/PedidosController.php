@@ -170,7 +170,12 @@ class PedidosController
         }
 
         $productos = $this->pedidosModel->obtenerProductosPorProveedor($idProveedor);
-        echo json_encode($productos ?: ['error' => 'No se encontraron productos']);
+
+        if ($productos) {
+            echo json_encode($productos);
+        } else {
+            echo json_encode(['error' => 'No se encontraron productos']);
+        }
     }
 
     public function verificarExistenciaPedido($idPedido)
@@ -183,7 +188,14 @@ class PedidosController
     {
         $datos = json_decode(file_get_contents('php://input'), true);
         $idPedido = $this->limpiarDatos($datos['idPedido']);
-        echo json_encode($this->pedidosModel->obtenerDetallesPedido($idPedido));
+
+        $detalles = $this->pedidosModel->obtenerDetallesPedido($idPedido);
+
+        if ($detalles !== false) {
+            echo json_encode($detalles);
+        } else {
+            echo json_encode([]);
+        }
     }
 
     // PedidosController.php
@@ -201,42 +213,96 @@ class PedidosController
 
     public function agregarDetallePedido()
     {
-        $datos = json_decode(file_get_contents('php://input'), true);
-        $detalle = $this->limpiarDatos($datos);
-
-        // Validaciones
-        if (
-            empty($detalle['idPedido']) ||
-            empty($detalle['idProducto']) ||
-            !isset($detalle['cantidad']) ||
-            !isset($detalle['precio']) ||
-            $detalle['cantidad'] <= 0 ||
-            $detalle['precio'] < 0
-        ) {
-            echo json_encode(['success' => false, 'error' => 'Datos incompletos o inválidos']);
-            return;
-        }
-
-        // Verificar existencia de idPedido
-        if (!$this->pedidosModel->verificarExistenciaPedido($detalle['idPedido'])) {
-            echo json_encode(['success' => false, 'error' => 'El idPedido no existe']);
-            return;
-        }
-
-        // Verificar existencia de idProducto
-        if (!$this->pedidosModel->verificarExistenciaProducto($detalle['idProducto'])) {
-            echo json_encode(['success' => false, 'error' => 'El idProducto no existe']);
-            return;
-        }
-
-        // Intentar agregar el detalle del pedido
         try {
-            $resultado = $this->pedidosModel->agregarDetallePedido($datos);
-            echo json_encode(['success' => true, 'message' => 'Detalle agregado exitosamente']);
+            // Obtener datos del cuerpo de la solicitud
+            $datos = json_decode(file_get_contents('php://input'), true);
+            $detalle = $this->limpiarDatos($datos);
+
+            // Registro de log para depuración
+            error_log('Datos recibidos para agregar detalle: ' . print_r($detalle, true));
+
+            // Validaciones más detalladas
+            $validacionResultado = $this->validarDatosDetallePedido($detalle);
+            if (!$validacionResultado['success']) {
+                error_log('Validación fallida: ' . $validacionResultado['error']);
+                echo json_encode($validacionResultado);
+                return;
+            }
+
+            // Calcular subtotal
+            $detalle['subTotal'] = $this->calcularSubtotal(
+                $detalle['cantidad'],
+                $detalle['precio'],
+                $detalle['descuento'] ?? 0
+            );
+
+            // Agregar fecha de creación si no existe
+            $detalle['fechaCreacion'] = $detalle['fechaCreacion'] ?? date('Y-m-d H:i:s');
+
+            // Intentar agregar el detalle del pedido
+            $resultado = $this->pedidosModel->agregarDetallePedido($detalle);
+
+            // Log del resultado
+            error_log('Resultado de agregar detalle: ' . print_r($resultado, true));
+
+            echo json_encode($resultado);
         } catch (Exception $e) {
-            // Capturar errores de la base de datos o cualquier otro error
-            echo json_encode(['success' => false, 'error' => 'Ocurrió un error al agregar el detalle: ' . $e->getMessage()]);
+            // Log del error
+            error_log('Excepción al agregar detalle: ' . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'error' => 'Ocurrió un error al agregar el detalle: ' . $e->getMessage()
+            ]);
         }
+    }
+
+    // Método de validación separado
+    private function validarDatosDetallePedido($detalle)
+    {
+        // Validaciones más exhaustivas
+        $errores = [];
+
+        if (empty($detalle['idPedido'])) {
+            $errores[] = 'ID de Pedido es requerido';
+        }
+
+        if (empty($detalle['idProducto'])) {
+            $errores[] = 'ID de Producto es requerido';
+        }
+
+        if (!isset($detalle['cantidad']) || $detalle['cantidad'] <= 0) {
+            $errores[] = 'Cantidad debe ser mayor a 0';
+        }
+
+        if (!isset($detalle['precio']) || $detalle['precio'] < 0) {
+            $errores[] = 'Precio no puede ser negativo';
+        }
+
+        // Verificaciones adicionales
+        if (!$this->pedidosModel->verificarExistenciaPedido($detalle['idPedido'])) {
+            $errores[] = 'El pedido no existe';
+        }
+
+        if (!$this->pedidosModel->verificarExistenciaProducto($detalle['idProducto'])) {
+            $errores[] = 'El producto no existe';
+        }
+
+        // Verificar stock del producto si es necesario
+        // $stockSuficiente = $this->pedidosModel->verificarStockProducto($detalle['idProducto'], $detalle['cantidad']);
+        // if (!$stockSuficiente) {
+        //     $errores[] = 'Stock insuficiente para el producto';
+        // }
+
+        // Retornar resultado de validación
+        return $errores ?
+            ['success' => false, 'error' => implode(', ', $errores)] :
+            ['success' => true];
+    }
+
+    // Método para calcular subtotal
+    private function calcularSubtotal($cantidad, $precio, $descuento = 0)
+    {
+        return max(0, ($cantidad * $precio) - $descuento);
     }
 
     public function modificarDetallePedido()

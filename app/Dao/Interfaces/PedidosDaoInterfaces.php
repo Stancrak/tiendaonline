@@ -30,4 +30,13 @@ interface PedidosDAOInterface
     public function verificarExistenciaProducto($idProducto);
     public function obtenerPedidosPorProveedor($idProveedor);
     public function obtenerDetallePorId($idDetallePedido);
+
+    // Métodos para transacciones
+    public function beginTransaction(): bool;
+    public function commit(): bool;
+    public function rollBack(): bool;
+
+    // Métodos para cálculo y actualización de total
+    public function calcularTotalPedido(string $idPedido): float;
+    public function actualizarTotalPedido(string $idPedido, float $total): bool;
 }
